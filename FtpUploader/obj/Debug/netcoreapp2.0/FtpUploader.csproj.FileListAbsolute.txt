@@ -1,0 +1,9 @@
+c:\users\kdonegan\source\repos\FtpUploader\FtpUploader\bin\Debug\netcoreapp2.0\FtpUploader.deps.json
+c:\users\kdonegan\source\repos\FtpUploader\FtpUploader\bin\Debug\netcoreapp2.0\FtpUploader.runtimeconfig.json
+c:\users\kdonegan\source\repos\FtpUploader\FtpUploader\bin\Debug\netcoreapp2.0\FtpUploader.runtimeconfig.dev.json
+c:\users\kdonegan\source\repos\FtpUploader\FtpUploader\bin\Debug\netcoreapp2.0\FtpUploader.dll
+c:\users\kdonegan\source\repos\FtpUploader\FtpUploader\obj\Debug\netcoreapp2.0\FtpUploader.csprojResolveAssemblyReference.cache
+c:\users\kdonegan\source\repos\FtpUploader\FtpUploader\obj\Debug\netcoreapp2.0\FtpUploader.csproj.CoreCompileInputs.cache
+c:\users\kdonegan\source\repos\FtpUploader\FtpUploader\obj\Debug\netcoreapp2.0\FtpUploader.AssemblyInfoInputs.cache
+c:\users\kdonegan\source\repos\FtpUploader\FtpUploader\obj\Debug\netcoreapp2.0\FtpUploader.AssemblyInfo.cs
+c:\users\kdonegan\source\repos\FtpUploader\FtpUploader\bin\Debug\netcoreapp2.0\WinSCP.exe
