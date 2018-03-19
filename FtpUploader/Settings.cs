@@ -16,6 +16,11 @@ namespace FtpUploader
         public string FtpPassword { get; set; }
         public int? FtpPort { get; set; } // Not typically needed
         public bool FtpIsSSL { get; set; } // Determines whether to use SFTP or FTP protocol
-        public bool FtpSSHKey { get; set; } // Only used if we're doing an SFTP transfer
+        public string FtpSSHKey { get; set; } // Only used if we're doing an SFTP transfer
+
+        public void LoadFromAppSettings()
+        {
+
+        }
     }
 }

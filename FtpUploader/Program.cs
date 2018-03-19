@@ -1,4 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration.FileExtensions;
+using Microsoft.Extensions.Configuration.Json;
 using Microsoft.Extensions.Options;
 using System;
 using System.IO;
@@ -10,16 +12,46 @@ namespace FtpUploader
         public static IConfiguration Configuration { get; set; }
 
         #region FTP Variables
-        private string _fileName;
-        private static string _ftpSite;
-        private static string ftpDirectory;
-        private static string ftpUserName;
-        private static string ftpPassword;
-        private static int? ftpPort;
         #endregion
+
+        private static Settings _loadAppSettings(IConfiguration config)
+        {
+            var settings = new Settings();
+
+            // Read configuration
+            var ftpDefaults = config.GetSection("ftpDefaults");
+            settings.LocalFileName = ftpDefaults["localFileName"];
+            settings.LocalFileDirectory = ftpDefaults["localFileDirectory"];
+            settings.DestinationFtpSite = ftpDefaults["destinationFtpSite"];
+            settings.DestinationFileDirectory = ftpDefaults["destinationFileDirectory"];
+            settings.FtpUserName = ftpDefaults["ftpUserName"];
+            settings.FtpPassword = ftpDefaults["ftpPassword"];
+
+            if (!string.IsNullOrWhiteSpace(ftpDefaults["ftpPort"]))
+            {
+                bool validPort;
+                validPort = int.TryParse(ftpDefaults["ftpPort"], out int parsedPort); // TODO: Do something with this validation
+                if (validPort)
+                    settings.FtpPort = parsedPort;
+            }
+            else
+            {
+                settings.FtpPort = null;
+            }
+
+            return settings;
+        }
 
         static void Main(string[] args)
         {
+            // Adding JSON file into IConfiguration.
+            var builder = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json")
+                ;//.Build();
+
+            var config = builder.Build();
+
             Settings _settings = new Settings();
 
             // TODO: Note: this Main() method is broken in regards to loading from appSettings.json until I add a way to load from that file
@@ -33,17 +65,9 @@ namespace FtpUploader
 
                 if (input == "Y" || string.IsNullOrWhiteSpace(input)) // If the user entered Y or just pressed enter without input, load from appSettings
                 {
-                    // TODO: Figure out an efficient way to load settings from appSettings.json
-
+                    _settings = _loadAppSettings(config);
                     _settings.UseAppSettingsFtp = true;
-                    //_settings.LocalFileName = _appSettings.Value.LocalFileName;
-                    //_settings.LocalFileDirectory = appSettings.Value.LocalFileDirectory;
-                    //_settings.DestinationFtpSite = appSettings.Value.DestinationFtpSite;
-                    //_settings.DestinationFileDirectory = appSettings.Value.DestinationFileDirectory;
-                    //_settings.FtpUserName = appSettings.Value.FtpUserName;
-                    //_settings.FtpPassword = appSettings.Value.FtpPassword;
-                    //_settings.FtpPort = appSettings.Value.FtpPort;
-
+                    
                     break; // Don't continue to prompt for proper input
                 }
                 else if (input == "N")
@@ -73,7 +97,7 @@ namespace FtpUploader
                     Console.WriteLine("(OPTIONAL) Enter the port for the destination FTP site:");
                     input = Console.ReadLine();
 
-                    if (!string.IsNullOrWhiteSpace(input))
+                    if (!string.IsNullOrWhiteSpace(input)) // If the user entered a value for the port, try and parse it to make sure it's a valid integer
                     {
                         bool validPort;
                         validPort = int.TryParse(input, out int parsedPort); // TODO: Do something with this validation
@@ -105,7 +129,7 @@ namespace FtpUploader
 
             Uploader uploader = new Uploader(_settings);
 
-            bool success = uploader.UploadSFTP("REPLACE ME: THIS SHOULD BE THE DIRECTORY", "REPLACE ME: THIS SHOULD BE THE FILE NAME"); // Upload the file from the specified directory to the destination directory we just defined in the previous step.
+            bool success = uploader.UploadSFTP(); // Upload the file from the specified directory to the destination directory we just defined in the previous step.
 
             if (!success)
             {
