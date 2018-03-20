@@ -9,11 +9,6 @@ namespace FtpUploader
 {
     class Program
     {
-        public static IConfiguration Configuration { get; set; }
-
-        #region FTP Variables
-        #endregion
-
         private static Settings _loadAppSettings(IConfiguration config)
         {
             var settings = new Settings();
