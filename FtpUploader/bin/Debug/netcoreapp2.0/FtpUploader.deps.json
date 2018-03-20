@@ -1,7 +1,7 @@
 {
   "runtimeTarget": {
     "name": ".NETCoreApp,Version=v2.0",
-    "signature": "b038c7c6887c7c8c7f9b9c82a6ff04492269a15c"
+    "signature": "7d311d20bc4380d3f3cf01c977edfd2f3a704763"
   },
   "compilationOptions": {},
   "targets": {
@@ -10,8 +10,7 @@
         "dependencies": {
           "Microsoft.Extensions.Configuration": "2.0.1",
           "Microsoft.Extensions.Configuration.Json": "2.0.1",
-          "Microsoft.Extensions.Options": "2.0.1",
-          "WinSCP": "5.13.0"
+          "Microsoft.Extensions.Options": "2.0.1"
         },
         "runtime": {
           "FtpUploader.dll": {}
@@ -524,8 +523,7 @@
           "System.Threading": "4.3.0",
           "System.Xml.ReaderWriter": "4.3.0"
         }
-      },
-      "WinSCP/5.13.0": {}
+      }
     }
   },
   "libraries": {
@@ -918,13 +916,6 @@
       "sha512": "sha512-lJ8AxvkX7GQxpC6GFCeBj8ThYVyQczx2+f/cWHJU8tjS7YfI6Cv6bon70jVEgs2CiFbmmM8b9j1oZVx0dSI2Ww==",
       "path": "system.xml.xmldocument/4.3.0",
       "hashPath": "system.xml.xmldocument.4.3.0.nupkg.sha512"
-    },
-    "WinSCP/5.13.0": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-GD6sYvzD/zZvzxc4oJq/6L7Ze4B6BFwx9KeQlhysUQDO+26ibUqrlpRn63RnXCIwostry2wCEnJwmsMv75AsVg==",
-      "path": "winscp/5.13.0",
-      "hashPath": "winscp.5.13.0.nupkg.sha512"
     }
   }
 }

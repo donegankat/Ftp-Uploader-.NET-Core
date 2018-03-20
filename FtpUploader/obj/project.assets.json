@@ -1018,12 +1018,6 @@
         "runtime": {
           "lib/netstandard1.3/System.Xml.XmlDocument.dll": {}
         }
-      },
-      "WinSCP/5.13.0": {
-        "type": "package",
-        "build": {
-          "build/WinSCP.targets": {}
-        }
       }
     }
   },
@@ -4065,18 +4059,6 @@
         "system.xml.xmldocument.4.3.0.nupkg.sha512",
         "system.xml.xmldocument.nuspec"
       ]
-    },
-    "WinSCP/5.13.0": {
-      "sha512": "GD6sYvzD/zZvzxc4oJq/6L7Ze4B6BFwx9KeQlhysUQDO+26ibUqrlpRn63RnXCIwostry2wCEnJwmsMv75AsVg==",
-      "type": "package",
-      "path": "winscp/5.13.0",
-      "files": [
-        "build/WinSCP.targets",
-        "lib/net/WinSCPnet.dll",
-        "tools/WinSCP.exe",
-        "winscp.5.13.0.nupkg.sha512",
-        "winscp.nuspec"
-      ]
     }
   },
   "projectFileDependencyGroups": {
@@ -4084,8 +4066,7 @@
       "Microsoft.Extensions.Configuration >= 2.0.1",
       "Microsoft.Extensions.Configuration.Json >= 2.0.1",
       "Microsoft.Extensions.Options >= 2.0.1",
-      "Microsoft.NETCore.App >= 2.0.0",
-      "WinSCP >= 5.13.0"
+      "Microsoft.NETCore.App >= 2.0.0"
     ]
   },
   "packageFolders": {
@@ -4146,10 +4127,6 @@
             "target": "Package",
             "version": "[2.0.0, )",
             "autoReferenced": true
-          },
-          "WinSCP": {
-            "target": "Package",
-            "version": "[5.13.0, )"
           }
         },
         "imports": [

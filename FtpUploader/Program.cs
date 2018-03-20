@@ -48,20 +48,20 @@ namespace FtpUploader
             var builder = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json")
-                ;//.Build();
+                ;
 
             var config = builder.Build();
 
+            
             Settings _settings = new Settings();
 
-            // TODO: Note: this Main() method is broken in regards to loading from appSettings.json until I add a way to load from that file
             // TODO: Decide whether I want to prompt for whether the appSettings.json should be used or if I just want to specify the useAppSettings bool in that file.
 
             while (true) // Loop until we get valid input
             {
                 // Prompt user for whether they want to manually provide the FTP info via the console or if they want to read from appSettings.json
                 Console.WriteLine("Do you want to load the file and FTP information from appSettings.json? Y/N (Default is Y)");
-                var input = Console.ReadLine();
+                var input = Console.ReadLine().ToUpper();
 
                 if (input == "Y" || string.IsNullOrWhiteSpace(input)) // If the user entered Y or just pressed enter without input, load from appSettings
                 {
@@ -114,10 +114,6 @@ namespace FtpUploader
                     {
                         _settings.LocalFileName = _settings.LocalFileName.Remove(_settings.LocalFileName.LastIndexOf("/"));
                     }
-                    if (!_settings.LocalFileDirectory.StartsWith("/")) // Ensure the directory path begins with /
-                    {
-                        _settings.LocalFileDirectory = "/" + _settings.LocalFileDirectory;
-                    }
 
                     break; // Don't continue to prompt for proper input
                 }
@@ -135,6 +131,10 @@ namespace FtpUploader
             {
                 // Do something to note that failure happened.
             }
+
+            Console.WriteLine();
+            Console.WriteLine("Press any key to exit");
+            Console.ReadKey();
         }
     }
 }

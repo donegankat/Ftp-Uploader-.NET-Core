@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using WinSCP;
 using Microsoft.Extensions.Options;
+using System.Net;
+using System.IO;
+using System.Text.RegularExpressions;
 
 namespace FtpUploader
 {
@@ -38,7 +40,7 @@ namespace FtpUploader
             Console.WriteLine(text);
 
             if (type == LogTypes.Error)
-            {
+            {                
                 throw new Exception("ERROR ENCOUNTERED");
             }
         }
@@ -74,76 +76,51 @@ namespace FtpUploader
 
             try
             {
-                // Setup WinSCP session options
-                SessionOptions sessionOptions = new SessionOptions
-                {
-                    HostName = _settings.DestinationFtpSite,
-                    UserName = _settings.FtpUserName,
-                    Password = _settings.FtpPassword,
-                };
+                string ftpPrefix = "ftp://";
+
+                if (_settings.FtpIsSSL) // This is an SFTP protocol transfer
+                    ftpPrefix = "sftp://";
+
+                string fullDestination = ftpPrefix + _settings.DestinationFtpSite + _settings.DestinationFileDirectory + _settings.LocalFileName;
 
                 // Set the port, if applicable
                 if (_settings.FtpPort.HasValue)
-                {
-                    sessionOptions.PortNumber = _settings.FtpPort.Value;
-                }
+                    fullDestination += $":{_settings.FtpPort}";
+
+                // Get the object used to communicate with the server.
+                // Example reference: https://docs.microsoft.com/en-us/dotnet/framework/network-programming/how-to-upload-files-with-ftp
+                FtpWebRequest request = (FtpWebRequest)WebRequest.Create(fullDestination);
+                request.Method = WebRequestMethods.Ftp.UploadFile;
+                request.Credentials = new NetworkCredential(_settings.FtpUserName, _settings.FtpPassword);
 
                 // Set the SSH key, if applicable
-                if (_settings.FtpIsSSL) // This is an SFTP protocol transfer
+                if (_settings.FtpIsSSL && string.IsNullOrWhiteSpace(_settings.FtpSSHKey)) // If this is an SFTP transfer, make sure we have a value for the SSH Key
                 {
-                    sessionOptions.Protocol = Protocol.Sftp;
-
-                    if (string.IsNullOrWhiteSpace(_settings.FtpSSHKey)) // Make sure we have a value
-                    {
-                        // If this should be an SFTP transfer but we DON'T have the SSH key, we can't continue.
-                        Log(LogTypes.Error, $"UploadSFTP failed - SSH protocol is missing the server SSH key for FTP site: {_settings.DestinationFtpSite}");
-                        success = false;
-                    }
-                    else
-                    {
-                        sessionOptions.SshHostKeyFingerprint = _settings.FtpSSHKey; // SSH key has value
-                    }
+                    // If this should be an SFTP transfer but we DON'T have the SSH key, we can't continue.
+                    Log(LogTypes.Error, $"UploadSFTP failed - SSH protocol is missing the server SSH key for FTP site: {_settings.DestinationFtpSite}");
+                    success = false;
                 }
-                else // This is a normal FTP protocol transfer
+                else
                 {
-                    sessionOptions.Protocol = Protocol.Ftp;
+                    // TODO: Need to actually figure this out
+                    //request.ClientCertificates.Add(new System.Security.Cryptography.X509Certificates.X509Certificate(_settings.FtpSSHKey)); // SSH key has value
                 }
 
-                if (success)
-                {
-                    string destination = "";
+                // Copy the contents of the file to the request stream.  
+                StreamReader sourceStream = new StreamReader(_settings.LocalFileDirectory + _settings.LocalFileName);
+                byte[] fileContents = Encoding.UTF8.GetBytes(sourceStream.ReadToEnd());
+                sourceStream.Close();
+                request.ContentLength = fileContents.Length;
 
-                    // If we have a directory, set the destination to be [directory]/[file].
-                    // If we don't have a directory, set the destination to just the file name.
-                    if (!string.IsNullOrWhiteSpace(_settings.DestinationFileDirectory))
-                    {
-                        destination = _settings.DestinationFileDirectory;
-                    }
+                Stream requestStream = request.GetRequestStream();
+                requestStream.Write(fileContents, 0, fileContents.Length);
+                requestStream.Close();
 
-                    destination += _settings.LocalFileName;
+                FtpWebResponse response = (FtpWebResponse)request.GetResponse();
 
-                    using (Session session = new Session())
-                    {
-                        // Connect
-                        session.Open(sessionOptions);
+                Console.WriteLine("Upload File Complete, status {0}", response.StatusDescription);
 
-                        // Upload files
-                        TransferOptions transferOptions = new TransferOptions();
-                        transferOptions.TransferMode = TransferMode.Binary;
-
-                        TransferOperationResult transferResult;
-                        transferResult = session.PutFiles(_settings.LocalFileDirectory + @"\" + _settings.LocalFileName, destination, false, transferOptions);
-
-                        // Throw on any error
-                        transferResult.Check();
-
-                        // Print and log results
-                        foreach (TransferEventArgs transfer in transferResult.Transfers)
-                        {
-                            Log(LogTypes.Success, $"UploadSFTP - Upload of {transfer.FileName} succeeded");
-                        }
-                    }
-                }
+                response.Close();
             }
             catch (Exception ex) // Catch, show, and log any errors
             {
@@ -197,29 +174,45 @@ namespace FtpUploader
         }
 
         /// <summary>
+        /// Calls the _formatDirectory helper function on both the local directory path and remote destination directory
+        /// </summary>
+        private void _formatDirectory()
+        {
+            _settings.LocalFileDirectory = _formatDirectory(_settings.LocalFileDirectory);
+            _settings.DestinationFileDirectory = _formatDirectory(_settings.DestinationFileDirectory, true);
+        }
+
+        /// <summary>
         /// Ensure proper string format for the destination directory.
         /// Directory should be in format: /DirectoryPath/SubDirectory/ (subdirectory is optional).
         /// Success isn't dependent upon the directory, so this returns void rather than bool.
         /// </summary>
-        private void _formatDirectory()
+        private string _formatDirectory(string directoryPath, bool isRemote = false)
         {
-            if (!string.IsNullOrWhiteSpace(_settings.DestinationFileDirectory))
+            if (!string.IsNullOrWhiteSpace(directoryPath))
             {
                 // Make sure we weren't given a bad path with the wrong folder separators
-                _settings.DestinationFileDirectory = _settings.DestinationFileDirectory.Replace(@"\", "/");
+                directoryPath = directoryPath.Replace(@"\", "/");
 
-                // Make sure the directory starts with '/'
-                if (!_settings.DestinationFileDirectory.StartsWith("/"))
+                // Make sure the REMOTE (NOT local) directory doesn't start with ftp://, sftp://, or ftps:// (we'll add it in later)
+                // Also make sure the REMOTE directory begins with /
+                if (isRemote)
                 {
-                    _settings.DestinationFileDirectory = "/" + _settings.DestinationFileDirectory;
+                    if (Regex.IsMatch(directoryPath, @"^(ftp|sftp|ftps):\/\/.*", RegexOptions.IgnoreCase)) // Don't begin the remote directory path with ftp/ftps/sftp
+                        directoryPath = Regex.Replace(directoryPath, @"^(ftp|sftp|ftps):\/\/", "", RegexOptions.IgnoreCase);
+
+                    if (!directoryPath.StartsWith("/")) // Ensure the directory starts with /
+                        directoryPath = "/" + directoryPath;
                 }
 
                 // Make sure the directory ends with '/'
-                if (!_settings.DestinationFileDirectory.EndsWith("/"))
+                if (!directoryPath.EndsWith("/"))
                 {
-                    _settings.DestinationFileDirectory += "/";
+                    directoryPath += "/";
                 }
             }
+
+            return directoryPath;
         }
         #endregion
     }
