@@ -135,16 +135,6 @@ namespace FtpUploader
 
 
         #region Helpers
-        /// <summary>
-        /// Parses a nullable int from a string. Returns null or an int value.
-        /// </summary>
-        /// <param name="val"></param>
-        /// <returns></returns>
-        private int? _parseInt(string val)
-        {
-            int i;
-            return int.TryParse(val, out i) ? (int?)i : null;
-        }
 
         /// <summary>
         /// Ensure proper string format for the destination host site.
