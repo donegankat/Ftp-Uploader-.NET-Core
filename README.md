@@ -2,5 +2,9 @@
 Console app used to upload files to an FTP directory
 
 ## Notes
-- Currently broken because this code was copied from a regular .NET project into this .NET Core 2 project only to discover that WinSCP (the FTP client) does not work in .NET Core.
-- Also this code needs some serious TLC for loading data from appSettings.json (and also implementing the usage of those settings throughout the app).
+- Currently only works with regular FTP protocol. I plan to add SFTP and possibly FTPS support later.
+- Code can be run either by loading in the source, destination, credentials, and other FTP information from appSettings.json or by prompting the user for that information.
+
+## To Do:
+- Add more validation for both user-input values and values loaded in from appSettings.json.
+- Add support for FTPS and SFTP.
